@@ -1,0 +1,370 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" type="image/png"
+      href="{{ url_for('static', filename='favicon.png') }}">
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+  <title>SAT Question Bank | SATTutor AI</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="qbank-page">
+
+<header class="topbar qbank-topbar">
+  <a href="{{ url_for('home') }}" class="logo">SAT <span>Tutor</span></a>
+  <nav class="qbank-nav">
+    {% if current_user.is_admin %}
+      <a class="qbank-admin-link" href="{{ url_for('qbank_admin') }}">＋ Add questions</a>
+    {% endif %}
+    <a class="header-avatar" href="{{ url_for('profile') }}"
+       title="My profile" aria-label="My profile">
+      {% if current_user.avatar_filename %}
+        <img src="{{ url_for('static', filename='uploads/avatars/' + current_user.avatar_filename) }}"
+             alt="Profile picture">
+      {% else %}
+        <span>{{ current_user.username[0]|upper }}</span>
+      {% endif %}
+    </a>
+  </nav>
+</header>
+
+<main class="qb-shell">
+  <section class="qb-heading">
+    <p class="qb-eyebrow">YOUR SAT PRACTICE SPACE</p>
+    <h1>Question <span>Bank.</span></h1>
+    <p>Find your next challenge. Practice deliberately. Learn from every answer.</p>
+  </section>
+
+  <section class="qb-stats" aria-label="Your practice statistics">
+    <article class="qb-stat">
+      <span>Questions attempted</span>
+      <strong id="statAttempts">—</strong>
+    </article>
+    <article class="qb-stat">
+      <span>Correct answers</span>
+      <strong id="statCorrect">—</strong>
+    </article>
+    <article class="qb-stat">
+      <span>Accuracy</span>
+      <strong id="statAccuracy">—</strong>
+    </article>
+    <article class="qb-stat">
+      <span>Saved questions</span>
+      <strong id="statSaved">—</strong>
+    </article>
+  </section>
+
+  <section class="qb-layout">
+    <aside class="qb-filters">
+      <div class="qb-filter-heading">
+        <h2>Filters</h2>
+        <button id="resetFilters" type="button" class="qb-reset">Reset</button>
+      </div>
+
+      <label for="searchQuestions">Search questions</label>
+      <div class="qb-search">
+        <span aria-hidden="true">⌕</span>
+        <input id="searchQuestions" type="search"
+               placeholder="Search a topic or question..." autocomplete="off">
+      </div>
+
+      <label for="subjectFilter">SAT section</label>
+      <select id="subjectFilter">
+        <option value="All">All sections</option>
+        <option value="Math">Math</option>
+        <option value="Reading & Writing">Reading &amp; Writing</option>
+      </select>
+
+      <label for="topicFilter">Domain / topic</label>
+      <select id="topicFilter">
+        <option value="All">All domains and topics</option>
+      </select>
+
+      <label for="difficultyFilter">Difficulty</label>
+      <select id="difficultyFilter">
+        <option value="All">All difficulties</option>
+        <option value="Easy">Easy</option>
+        <option value="Medium">Medium</option>
+        <option value="Hard">Hard</option>
+      </select>
+
+      <label class="qb-saved-toggle">
+        <input id="savedFilter" type="checkbox">
+        <span>Show saved questions only</span>
+      </label>
+
+      <p class="qb-filter-note">Filters update your question list. Try one at a time or combine them.</p>
+    </aside>
+
+    <section class="qb-results">
+      <div class="qb-results-heading">
+        <div>
+          <h2>Practice questions</h2>
+          <p id="resultCount">Loading your question bank…</p>
+        </div>
+        <button id="refreshQuestions" type="button" class="qb-secondary-btn">
+          ↻ Refresh
+        </button>
+      </div>
+
+      <div id="questions" class="qb-question-list" aria-live="polite">
+        <div class="qb-message">Loading questions…</div>
+      </div>
+    </section>
+  </section>
+  <footer class="qb-footer">SATTutor AI · Build understanding, one question at a time.</footer>
+</main>
+
+<script>
+(() => {
+  const csrfToken = document.querySelector('meta[name="csrf-token"]').content;
+  const searchInput = document.getElementById("searchQuestions");
+  const subjectFilter = document.getElementById("subjectFilter");
+  const topicFilter = document.getElementById("topicFilter");
+  const difficultyFilter = document.getElementById("difficultyFilter");
+  const savedFilter = document.getElementById("savedFilter");
+  const questionsContainer = document.getElementById("questions");
+  const resultCount = document.getElementById("resultCount");
+
+  const rwDomains = [
+    "Information and Ideas",
+    "Craft and Structure",
+    "Expression of Ideas",
+    "Standard English Conventions"
+  ];
+
+  const mathTopics = [
+    "Algebra",
+    "Advanced Math",
+    "Problem-Solving and Data Analysis",
+    "Geometry and Trigonometry"
+  ];
+
+  function updateTopics() {
+    const subject = subjectFilter.value;
+    const topics = subject === "Reading & Writing" ? rwDomains
+      : subject === "Math" ? mathTopics : [...rwDomains, ...mathTopics];
+
+    topicFilter.replaceChildren();
+    const allOption = document.createElement("option");
+    allOption.value = "All";
+    allOption.textContent = "All domains and topics";
+    topicFilter.appendChild(allOption);
+
+    topics.forEach(topic => {
+      const option = document.createElement("option");
+      option.value = topic;
+      option.textContent = topic;
+      topicFilter.appendChild(option);
+    });
+  }
+
+  function addText(tag, className, value) {
+    const el = document.createElement(tag);
+    if (className) el.className = className;
+    el.textContent = value ?? "";
+    return el;
+  }
+
+  async function api(url, options = {}) {
+    const response = await fetch(url, {
+      ...options,
+      headers: {
+        ...(options.body ? {"Content-Type": "application/json"} : {}),
+        ...(options.method === "POST" ? {"X-CSRFToken": csrfToken} : {}),
+        ...(options.headers || {})
+      }
+    });
+    const data = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(data.error || "Something went wrong.");
+    return data;
+  }
+
+  async function loadStats() {
+    try {
+      const stats = await api("/api/qbank/stats");
+      document.getElementById("statAttempts").textContent = stats.attempts;
+      document.getElementById("statCorrect").textContent = stats.correct;
+      document.getElementById("statAccuracy").textContent = stats.accuracy + "%";
+      document.getElementById("statSaved").textContent = stats.saved;
+    } catch (error) {
+      console.error("Could not load practice stats:", error);
+    }
+  }
+
+  function createQuestionCard(question) {
+    const card = addText("article", "qb-question-card", "");
+    const top = addText("div", "qb-card-top", "");
+    const badges = addText("div", "qb-badges", "");
+
+    badges.append(
+      addText("span", "qb-badge qb-subject-badge", question.subject),
+      addText("span", "qb-badge", question.topic),
+      addText("span", "qb-badge qb-difficulty-" +
+        String(question.difficulty).toLowerCase(), question.difficulty)
+    );
+
+    const saveButton = addText("button", "qb-save-btn",
+      question.saved ? "★ Saved" : "☆ Save");
+    saveButton.type = "button";
+    saveButton.setAttribute("aria-pressed", String(question.saved));
+    saveButton.addEventListener("click", async () => {
+      saveButton.disabled = true;
+      try {
+        const result = await api(
+          `/api/qbank/questions/${question.id}/save`,
+          {method: "POST", body: JSON.stringify({})}
+        );
+        question.saved = result.saved;
+        saveButton.textContent = result.saved ? "★ Saved" : "☆ Save";
+        saveButton.setAttribute("aria-pressed", String(result.saved));
+        await loadStats();
+        if (savedFilter.checked && !result.saved) await loadQuestions();
+      } catch (error) {
+        alert(error.message);
+      } finally {
+        saveButton.disabled = false;
+      }
+    });
+
+    top.append(badges, saveButton);
+    card.appendChild(top);
+    card.appendChild(addText("h3", "qb-question-title", question.question));
+
+    const options = question.options || {};
+    const optionGroup = addText("div", "qb-options", "");
+    const feedback = addText("div", "qb-answer-feedback", "");
+    feedback.hidden = true;
+
+    const answerButton = addText("button", "qb-check-btn", "Check answer");
+    answerButton.type = "button";
+    answerButton.disabled = true;
+
+    const radioName = `answer-${question.id}`;
+    let selectedAnswer = "";
+
+    Object.entries(options).forEach(([key, value]) => {
+      const label = addText("label", "qb-option", "");
+      const radio = document.createElement("input");
+      radio.type = "radio";
+      radio.name = radioName;
+      radio.value = key;
+      radio.addEventListener("change", () => {
+        selectedAnswer = key;
+        answerButton.disabled = false;
+        feedback.hidden = true;
+        feedback.replaceChildren();
+      });
+
+      const letter = addText("span", "qb-option-letter", key);
+      const text = addText("span", "qb-option-text", value);
+      label.append(radio, letter, text);
+      optionGroup.appendChild(label);
+    });
+
+    answerButton.addEventListener("click", async () => {
+      if (!selectedAnswer) return;
+      answerButton.disabled = true;
+      try {
+        const result = await api(
+          `/api/qbank/questions/${question.id}/answer`,
+          {
+            method: "POST",
+            body: JSON.stringify({answer: selectedAnswer})
+          }
+        );
+        feedback.hidden = false;
+        feedback.className = "qb-answer-feedback " +
+          (result.correct ? "is-correct" : "is-incorrect");
+        feedback.replaceChildren(
+          addText("strong", "", result.correct ? "Correct!" : "Not quite."),
+          addText("p", "", "Correct answer: " + result.correct_answer),
+          addText("p", "", result.explanation)
+        );
+        await loadStats();
+      } catch (error) {
+        feedback.hidden = false;
+        feedback.className = "qb-answer-feedback is-incorrect";
+        feedback.textContent = error.message;
+      } finally {
+        answerButton.disabled = false;
+      }
+    });
+
+    card.append(optionGroup, answerButton, feedback);
+    return card;
+  }
+
+  async function loadQuestions() {
+    questionsContainer.replaceChildren(
+      addText("div", "qb-message", "Finding questions…")
+    );
+    try {
+      const params = new URLSearchParams();
+      params.set("subject", subjectFilter.value);
+      params.set("topic", topicFilter.value);
+      params.set("difficulty", difficultyFilter.value);
+      params.set("search", searchInput.value.trim());
+      if (savedFilter.checked) params.set("saved", "true");
+
+      const questions = await api("/api/qbank/questions?" + params.toString());
+      questionsContainer.replaceChildren();
+      resultCount.textContent =
+        `${questions.length} question${questions.length === 1 ? "" : "s"} found`;
+
+      if (!questions.length) {
+        questionsContainer.appendChild(addText(
+          "div", "qb-empty",
+          "No questions match these filters yet. Try changing your filters or add questions through the admin manager."
+        ));
+        return;
+      }
+
+      questions.forEach(question =>
+        questionsContainer.appendChild(createQuestionCard(question))
+      );
+    } catch (error) {
+      questionsContainer.replaceChildren(
+        addText("div", "qb-empty", "Could not load questions: " + error.message)
+      );
+      resultCount.textContent = "Unable to load questions";
+    }
+  }
+
+  let searchTimer;
+  searchInput.addEventListener("input", () => {
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(loadQuestions, 250);
+  });
+
+  subjectFilter.addEventListener("change", () => {
+    updateTopics();
+    loadQuestions();
+  });
+  topicFilter.addEventListener("change", loadQuestions);
+  difficultyFilter.addEventListener("change", loadQuestions);
+  savedFilter.addEventListener("change", loadQuestions);
+  document.getElementById("refreshQuestions").addEventListener("click", () => {
+    loadQuestions();
+    loadStats();
+  });
+
+  document.getElementById("resetFilters").addEventListener("click", () => {
+    searchInput.value = "";
+    subjectFilter.value = "All";
+    difficultyFilter.value = "All";
+    savedFilter.checked = false;
+    updateTopics();
+    loadQuestions();
+  });
+
+  updateTopics();
+  loadQuestions();
+  loadStats();
+})();
+</script>
+</body>
+</html>

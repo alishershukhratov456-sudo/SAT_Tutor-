@@ -1,0 +1,291 @@
+
+* {
+  box-sizing: border-box;
+}
+
+:root {
+  --bg: #080b14;
+  --panel: #101522;
+  --border: #252e43;
+  --blue: #6485ff;
+  --purple: #a17aff;
+  --green: #62e5bd;
+  --text: #edf0ff;
+  --muted: #929bb5;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    radial-gradient(ellipse at top, #18203b 0%, transparent 55%),
+    var(--bg);
+  color: var(--text);
+  font-family: "DM Sans", sans-serif;
+}
+
+.profile-page {
+  width: min(100% - 32px, 560px);
+  margin: 0 auto;
+  padding: 36px 0 60px;
+}
+
+.back-link,
+.home-link {
+  color: #b9c5ff;
+  text-decoration: none;
+  font-size: 14px;
+}
+
+.back-link:hover,
+.home-link:hover {
+  color: var(--green);
+}
+
+.profile-card {
+  margin-top: 28px;
+  padding: 36px;
+  background: rgba(16, 21, 34, 0.94);
+  border: 1px solid var(--border);
+  border-radius: 22px;
+  text-align: center;
+  box-shadow: 0 24px 80px #0005;
+}
+
+.eyebrow {
+  color: var(--green);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 2px;
+}
+
+h1 {
+  margin: 10px 0;
+  font: 700 34px "Space Grotesk", sans-serif;
+}
+
+.subtitle,
+.email,
+.hint {
+  color: var(--muted);
+}
+
+.subtitle {
+  font-size: 14px;
+}
+
+.avatar {
+  width: 116px;
+  height: 116px;
+  margin: 30px auto 16px;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+  border-radius: 50%;
+  border: 3px solid var(--blue);
+  background: linear-gradient(135deg, var(--blue), var(--purple));
+  box-shadow: 0 0 35px #6485ff35;
+}
+
+.avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.avatar span {
+  color: white;
+  font: 700 46px "Space Grotesk", sans-serif;
+}
+
+.username {
+  margin: 0;
+  font: 600 22px "Space Grotesk", sans-serif;
+}
+
+.email {
+  margin: 8px 0 28px;
+  font-size: 14px;
+  overflow-wrap: anywhere;
+}
+
+.upload-form {
+  text-align: left;
+  padding: 22px;
+  background: #0b101d;
+  border: 1px solid var(--border);
+  border-radius: 15px;
+}
+
+.upload-form label {
+  display: block;
+  margin-bottom: 12px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.upload-form input[type="file"] {
+  width: 100%;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 9px;
+  background: var(--panel);
+  color: var(--text);
+  font: inherit;
+  font-size: 12px;
+}
+
+.hint {
+  font-size: 12px;
+}
+
+.upload-form button {
+  width: 100%;
+  margin-top: 12px;
+  padding: 13px;
+  border: 0;
+  border-radius: 10px;
+  background: linear-gradient(100deg, var(--blue), var(--purple));
+  color: white;
+  font: 700 14px "DM Sans", sans-serif;
+  cursor: pointer;
+  transition: opacity 0.2s, transform 0.2s;
+}
+
+.upload-form button:hover {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.notice {
+  margin-top: 18px;
+  font-size: 13px;
+}
+
+.notice.success {
+  color: var(--green);
+}
+
+.notice.error {
+  color: #ff8d9b;
+}
+
+.home-link {
+  display: inline-block;
+  margin-top: 25px;
+}
+
+@media (max-width: 480px) {
+  .profile-card {
+    padding: 25px 18px;
+  }
+
+  h1 {
+    font-size: 29px;
+  }
+
+  .upload-form {
+    padding: 16px;
+  }
+}
+
+
+
+/* Profile header and three-dot menu */
+.profile-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  text-align: left;
+}
+
+.profile-heading {
+  min-width: 0;
+}
+
+.profile-heading h1 {
+  margin-top: 10px;
+}
+
+.profile-menu {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.menu-button {
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #0b101d;
+  color: var(--text);
+  font-size: 27px;
+  cursor: pointer;
+}
+
+.menu-button:hover {
+  border-color: var(--blue);
+}
+
+.menu-dropdown {
+  position: absolute;
+  top: 48px;
+  right: 0;
+  z-index: 10;
+  width: 190px;
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  background: #151c2c;
+  box-shadow: 0 12px 35px #0007;
+  text-align: left;
+}
+
+.menu-dropdown[hidden] {
+  display: none;
+}
+
+.menu-dropdown button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  padding: 11px 12px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text);
+  font: 500 13px "DM Sans", sans-serif;
+  text-align: left;
+  cursor: pointer;
+}
+
+.menu-dropdown button:hover {
+  background: #252e43;
+}
+
+.menu-dropdown form {
+  margin: 0;
+}
+
+.menu-dropdown .delete-menu-item {
+  color: #ff8d9b;
+}
+
+.menu-divider {
+  height: 1px;
+  margin: 4px 6px;
+  background: var(--border);
+}
+
+@media (max-width: 480px) {
+  .profile-top {
+    gap: 8px;
+  }
+
+  .menu-dropdown {
+    width: 180px;
+  }
+}

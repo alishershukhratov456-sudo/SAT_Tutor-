@@ -1,0 +1,52 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="icon" type="image/png"
+      href="{{ url_for('static', filename='favicon.png') }}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#080b14">
+    <title>Create Account | SAT Tutor</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='auth.css') }}">
+</head>
+<body>
+    <main class="auth-card">
+        <a class="brand" href="{{ url_for('signup') }}">SAT Tutor<span>.</span></a>
+        <p class="eyebrow">YOUR PERSONAL SAT TUTOR</p>
+
+        <h1>Create your account.</h1>
+        <p class="subtitle">Your SAT preparation starts here.</p>
+
+        {% for message in get_flashed_messages() %}
+            <div class="message">{{ message }}</div>
+        {% endfor %}
+
+        <form method="POST" action="{{ url_for('signup') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <label for="username">Username</label>
+            <input id="username" name="username" type="text"
+                   placeholder="Choose a username"
+                   minlength="3" maxlength="30"
+                   autocomplete="username" required>
+
+            <label for="email">Email</label>
+            <input id="email" name="email" type="email"
+                   placeholder="you@example.com"
+                   autocomplete="email" required>
+
+            <label for="password">Password</label>
+            <input id="password" name="password" type="password"
+                   placeholder="At least 8 characters"
+                   minlength="8" autocomplete="new-password" required>
+
+            <button type="submit">Create Account <span>→</span></button>
+        </form>
+
+        <p class="switch">Already have an account?
+            <a href="{{ url_for('login') }}">Sign in</a>
+        </p>
+    </main>
+</body>
+</html>

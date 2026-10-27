@@ -1,0 +1,256 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <link rel="icon" type="image/png"
+      href="{{ url_for('static', filename='favicon.png') }}">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+  <title>Add Questions | SATTutor AI</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="qbank-page">
+<header class="topbar qbank-topbar">
+  <a href="{{ url_for('home') }}" class="logo">SAT <span>AI</span></a>
+  <a href="{{ url_for('qbank') }}" class="qbank-admin-link">← Back to QBank</a>
+</header>
+
+<main class="qb-shell qb-admin-shell">
+  <section class="qb-heading">
+    <p class="qb-eyebrow">ADMIN WORKSPACE</p>
+    <h1>Add a <span>question.</span></h1>
+    <p>Add questions manually now. We'll add bulk importing later.</p>
+  </section>
+
+  {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+      <div class="qb-flash-list">
+        {% for category, message in messages %}
+          <div class="qb-flash {{ category }}">{{ message }}</div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  {% endwith %}
+
+  <form method="POST" class="qb-admin-form">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+    <div class="qb-admin-grid">
+      <div>
+        <label for="subject">SAT section</label>
+        <select id="subject" name="subject" required>
+          <option value="Math">Math</option>
+          <option value="Reading & Writing">Reading &amp; Writing</option>
+        </select>
+      </div>
+      <div>
+        <label for="difficulty">Difficulty</label>
+        <select id="difficulty" name="difficulty" required>
+          <option value="Easy">Easy</option>
+          <option value="Medium" selected>Medium</option>
+          <option value="Hard">Hard</option>
+        </select>
+      </div>
+    </div>
+
+    <label for="topic">Domain / topic</label>
+    <select id="topic" name="topic" required>
+      <option value="Information and Ideas">Information and Ideas</option>
+      <option value="Craft and Structure">Craft and Structure</option>
+      <option value="Expression of Ideas">Expression of Ideas</option>
+      <option value="Standard English Conventions">Standard English Conventions</option>
+      <option value="Algebra">Algebra</option>
+      <option value="Advanced Math">Advanced Math</option>
+      <option value="Problem-Solving and Data Analysis">Problem-Solving and Data Analysis</option>
+      <option value="Geometry and Trigonometry">Geometry and Trigonometry</option>
+    </select>
+
+    <label for="question_text">Question text</label>
+    <textarea id="question_text" name="question_text" rows="5"
+      maxlength="20000" required placeholder="Enter the complete SAT question..."></textarea>
+
+    <div class="qb-admin-options">
+      <div class="qb-admin-option">
+        <label for="option_a">Option A</label>
+        <textarea id="option_a" name="option_a" rows="2" required></textarea>
+      </div>
+      <div class="qb-admin-option">
+        <label for="option_b">Option B</label>
+        <textarea id="option_b" name="option_b" rows="2" required></textarea>
+      </div>
+      <div class="qb-admin-option">
+        <label for="option_c">Option C</label>
+        <textarea id="option_c" name="option_c" rows="2" required></textarea>
+      </div>
+      <div class="qb-admin-option">
+        <label for="option_d">Option D</label>
+        <textarea id="option_d" name="option_d" rows="2" required></textarea>
+      </div>
+    </div>
+
+    <label for="correct_answer">Correct answer</label>
+    <select id="correct_answer" name="correct_answer" required>
+      <option value="A">A</option>
+      <option value="B">B</option>
+      <option value="C">C</option>
+      <option value="D">D</option>
+    </select>
+
+    <label for="explanation">Explanation (optional)</label>
+    <textarea id="explanation" name="explanation" rows="4"
+      maxlength="20000" placeholder="Explain why the correct answer is right..."></textarea>
+
+    <button class="qb-check-btn qb-admin-submit" type="submit">
+      + Add question to bank
+    </button>
+  </form>
+
+  
+  </form>
+
+  <!-- SAVED QUESTION MANAGER -->
+  <section class="qb-admin-manager">
+    <div class="qb-manager-heading">
+      <div>
+        <p class="qb-eyebrow">YOUR QUESTION LIBRARY</p>
+        <h2>Manage <span>questions.</span></h2>
+        <p>Expand any question to view its full content.</p>
+      </div>
+      <div class="qb-manager-count">
+        {{ questions|length }} saved
+      </div>
+    </div>
+
+    {% if questions %}
+      <div class="qb-managed-list">
+        {% for question in questions %}
+          <details class="qb-managed-question">
+            <summary class="qb-managed-summary">
+              <span class="qb-managed-id">#{{ question.id }}</span>
+
+              <span class="qb-managed-info">
+                <strong>Question #{{ question.id }}</strong>
+                <span>{{ question.subject }} · {{ question.topic }}</span>
+              </span>
+
+              <span class="qb-managed-difficulty
+                qb-difficulty-{{ question.difficulty|lower }}">
+                {{ question.difficulty }}
+              </span>
+
+              <span class="qb-expand-label">
+                Expand <span class="qb-expand-icon">⌄</span>
+              </span>
+            </summary>
+
+            <div class="qb-managed-content">
+              <div class="qb-managed-meta">
+                <span>Section: <strong>{{ question.subject }}</strong></span>
+                <span>Domain: <strong>{{ question.topic }}</strong></span>
+                <span>Difficulty: <strong>{{ question.difficulty }}</strong></span>
+                <span>Source: <strong>{{ question.source }}</strong></span>
+              </div>
+
+              <div class="qb-managed-block">
+                <h3>Question</h3>
+                <p class="qb-managed-question-text">{{ question.question_text }}</p>
+              </div>
+
+              <div class="qb-managed-block">
+                <h3>Answer choices</h3>
+                <div class="qb-managed-options">
+                  {% for letter in ['A', 'B', 'C', 'D'] %}
+                    <div class="qb-managed-option
+                      {% if letter == question.correct_answer %}qb-correct-option{% endif %}">
+                      <span class="qb-option-letter">{{ letter }}</span>
+                      <span>{{ question.options.get(letter, '') }}</span>
+                      {% if letter == question.correct_answer %}
+                        <span class="qb-correct-label">Correct answer</span>
+                      {% endif %}
+                    </div>
+                  {% endfor %}
+                </div>
+              </div>
+
+              {% if question.explanation %}
+                <div class="qb-managed-block qb-managed-explanation">
+                  <h3>Explanation</h3>
+                  <p>{{ question.explanation }}</p>
+                </div>
+              {% endif %}
+
+              <button type="button" class="qb-collapse-btn">
+                Collapse question ↑
+              </button>
+            </div>
+          </details>
+        {% endfor %}
+      </div>
+    {% else %}
+      <div class="qb-managed-empty">
+        <span class="qb-empty-icon">▤</span>
+        <h3>No questions yet</h3>
+        <p>Add your first question using the form above. It will appear here.</p>
+      </div>
+    {% endif %}
+  </section>
+</main>
+
+</main>
+
+<script>
+const subject = document.getElementById("subject");
+const topic = document.getElementById("topic");
+const rw = [
+  "Information and Ideas",
+  "Craft and Structure",
+  "Expression of Ideas",
+  "Standard English Conventions"
+];
+const math = [
+  "Algebra",
+  "Advanced Math",
+  "Problem-Solving and Data Analysis",
+  "Geometry and Trigonometry"
+];
+
+subject.addEventListener("change", () => {
+  const previous = topic.value;
+  const choices = subject.value === "Math" ? math : rw;
+  topic.replaceChildren();
+
+  choices.forEach(value => {
+    const option = document.createElement("option");
+    option.value = value;
+    option.textContent = value;
+    topic.appendChild(option);
+  });
+
+  if (choices.includes(previous)) topic.value = previous;
+});
+subject.dispatchEvent(new Event("change"));
+
+document.querySelectorAll(".qb-collapse-btn").forEach(button => {
+  button.addEventListener("click", () => {
+    const details = button.closest("details");
+    if (details) details.open = false;
+  });
+});
+
+document.querySelectorAll(".qb-managed-question").forEach(details => {
+  const label = details.querySelector(".qb-expand-label");
+
+  details.addEventListener("toggle", () => {
+    if (label) {
+      label.innerHTML = details.open
+        ? 'Collapse <span class="qb-expand-icon">⌃</span>'
+        : 'Expand <span class="qb-expand-icon">⌄</span>';
+    }
+  });
+});
+
+</script>
+</body>
+</html>

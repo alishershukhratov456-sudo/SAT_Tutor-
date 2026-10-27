@@ -1,0 +1,47 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+
+    <link rel="icon" type="image/png"
+      href="{{ url_for('static', filename='favicon.png') }}">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#080b14">
+    <title>Sign In | SAT Tutor</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='auth.css') }}">
+</head>
+<body>
+    <main class="auth-card">
+        <a class="brand" href="{{ url_for('login') }}">SAT Tutor<span>.</span></a>
+        <p class="eyebrow">YOUR PERSONAL SAT TUTOR</p>
+
+        <h1>Welcome back.</h1>
+        <p class="subtitle">Sign in to continue your SAT preparation.</p>
+
+        {% for message in get_flashed_messages() %}
+            <div class="message">{{ message }}</div>
+        {% endfor %}
+
+        <form method="POST" action="{{ url_for('login') }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+
+            <label for="identity">Username or email</label>
+            <input id="identity" name="identity" type="text"
+                   placeholder="Enter your username or email"
+                   autocomplete="username" required>
+
+            <label for="password">Password</label>
+            <input id="password" name="password" type="password"
+                   placeholder="Enter your password"
+                   autocomplete="current-password" required>
+
+            <button type="submit">Sign In <span>→</span></button>
+        </form>
+
+        <p class="switch">Don't have an account?
+            <a href="{{ url_for('signup') }}">Create one</a>
+        </p>
+    </main>
+</body>
+</html>

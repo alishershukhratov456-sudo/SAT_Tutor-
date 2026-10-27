@@ -1,0 +1,145 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<link rel="icon" type="image/png"
+      href="{{ url_for('static', filename='favicon.png') }}">
+
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+  <title>My Profile | SAT Tutor</title>
+
+  <link rel="stylesheet" href="{{ url_for('static', filename='profile.css') }}">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+  <main class="profile-page">
+    <a href="/" class="back-link">← Back to SAT Tutor</a>
+
+    <section class="profile-card">
+      <div class="profile-top">
+        <div class="profile-heading">
+          <p class="eyebrow">YOUR PERSONAL SPACE</p>
+          <h1>My Profile</h1>
+          <p class="subtitle">Manage your SAT Tutor account.</p>
+        </div>
+
+        <div class="profile-menu">
+          <button
+            type="button"
+            id="menu-button"
+            class="menu-button"
+            aria-label="Profile options"
+            aria-expanded="false"
+            aria-controls="profile-menu"
+          >⋮</button>
+
+          <div id="profile-menu" class="menu-dropdown" hidden>
+            <button type="button" id="change-avatar-button">
+              <span>Change avatar</span>
+            </button>
+
+            <div class="menu-divider"></div>
+
+            <button
+              type="button"
+              class="delete-menu-item"
+              id="delete-account-button"
+            >
+              <span>Delete account</span>
+            </button>
+
+            <div class="menu-divider"></div>
+
+            <form method="POST" action="{{ url_for('logout') }}">
+              <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+              <button type="submit">Sign out</button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <div class="avatar">
+        {% if current_user.avatar_filename %}
+          <img
+            src="{{ url_for('static', filename='uploads/avatars/' + current_user.avatar_filename) }}"
+            alt="Your profile picture"
+          >
+        {% else %}
+          <span>{{ current_user.username[0]|upper }}</span>
+        {% endif %}
+      </div>
+
+      <h2 class="username">{{ current_user.username }}</h2>
+      <p class="email">{{ current_user.email }}</p>
+
+      <!-- Hidden until the user chooses Change avatar -->
+      <form
+        method="POST"
+        enctype="multipart/form-data"
+        id="avatar-form"
+        hidden
+      >
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <input
+          type="file"
+          id="avatar-input"
+          name="avatar"
+          accept="image/png,image/jpeg,image/webp"
+        >
+      </form>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+          <p class="notice {{ category }}">{{ message }}</p>
+        {% endfor %}
+      {% endwith %}
+
+      <a href="/" class="home-link">Return to your AI tutor</a>
+    </section>
+  </main>
+
+  <script>
+    const menuButton = document.getElementById("menu-button");
+    const menu = document.getElementById("profile-menu");
+    const changeAvatarButton = document.getElementById("change-avatar-button");
+    const avatarInput = document.getElementById("avatar-input");
+    const avatarForm = document.getElementById("avatar-form");
+    const deleteAccountButton = document.getElementById("delete-account-button");
+
+    menuButton.addEventListener("click", () => {
+      const isOpening = menu.hidden;
+      menu.hidden = !isOpening;
+      menuButton.setAttribute("aria-expanded", String(isOpening));
+    });
+
+    document.addEventListener("click", (event) => {
+      if (!event.target.closest(".profile-menu")) {
+        menu.hidden = true;
+        menuButton.setAttribute("aria-expanded", "false");
+      }
+    });
+
+    changeAvatarButton.addEventListener("click", () => {
+      menu.hidden = true;
+      menuButton.setAttribute("aria-expanded", "false");
+      avatarInput.click();
+    });
+
+    avatarInput.addEventListener("change", () => {
+      if (avatarInput.files.length > 0) {
+        avatarForm.requestSubmit();
+      }
+    });
+
+    deleteAccountButton.addEventListener("click", () => {
+      menu.hidden = true;
+      menuButton.setAttribute("aria-expanded", "false");
+      alert("Account deletion needs a secure confirmation step. We'll set that up next.");
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,168 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="csrf-token" content="{{ csrf_token() }}">
+
+  <title>SAT Tutor</title>
+
+  <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+
+
+<body>
+
+  <!-- Top navigation: SAT Tutor left, profile right -->
+  <header class="topbar">
+    <a href="/" class="logo" aria-label="SAT Tutor Home">
+      SAT <span>Tutor</span>
+    </a>
+
+    <div class="account-actions">
+      <a href="/qbank" class="qbank-button">
+  <span>▤</span> QBank
+</a>
+      <span class="tag">
+        YOUR PERSONAL SAT TUTOR · {{ current_user.username }}
+      </span>
+
+      <a href="{{ url_for('profile') }}"
+         class="header-avatar"
+         title="My Profile"
+         aria-label="Open my profile">
+
+        {% if current_user.avatar_filename %}
+          <img
+            src="{{ url_for('static', filename='uploads/avatars/' + current_user.avatar_filename) }}"
+            alt="My profile picture">
+        {% else %}
+          <span>{{ current_user.username[0]|upper }}</span>
+        {% endif %}
+
+      </a>
+    </div>
+  </header>
+
+
+
+
+  <main class="container">
+    <section class="hero">
+      <p class="eyebrow">STUDY SMARTER</p>
+
+      <h1>Your SAT journey,<br><span>powered by AI.</span></h1>
+
+      <p class="subtitle">
+        Ask questions, upload screenshots, and understand every step.
+      </p>
+    </section>
+
+    <section class="workspace">
+
+      <div class="section-tabs">
+        <button type="button" class="tab active" data-section="Math">
+          ∑ SAT Math
+        </button>
+
+        <button type="button" class="tab" data-section="Reading & Writing">
+          Aa Reading & Writing
+        </button>
+      </div>
+
+      <label for="question">YOUR QUESTION</label>
+
+      <textarea
+        id="question"
+        placeholder="Type your question or upload a screenshot below..."
+      ></textarea>
+
+      <!-- Image upload -->
+      <div class="image-upload-area">
+        <label for="imageInput">ATTACH A QUESTION IMAGE</label>
+
+        <input
+          type="file"
+          id="imageInput"
+          accept="image/png,image/jpeg,image/webp"
+          hidden
+        >
+
+        <div class="upload-controls">
+          <button
+            type="button"
+            id="chooseImageButton"
+            class="upload-button"
+          >
+            <span>＋</span> Upload image
+          </button>
+
+          <span id="fileName">No image selected</span>
+        </div>
+
+        <p class="hint">
+          Upload a JPG, PNG, or WebP screenshot or photo.
+        </p>
+
+        <div id="imagePreviewContainer" hidden>
+          <img
+            id="imagePreview"
+            alt="Preview of your question image"
+          >
+
+          <button
+            type="button"
+            id="removeImageButton"
+            class="remove-image"
+          >
+            ✕ Remove image
+          </button>
+        </div>
+      </div>
+
+      <!-- Example questions -->
+      <div class="examples">
+        <button
+          type="button"
+          class="example"
+          data-question="If 3x + 7 = 22, what is the value of x?"
+        >
+          Try a Math question ↗
+        </button>
+
+        <button
+          type="button"
+          class="example"
+          data-question="Choose the correct word: Each of the students ___ a book. (A) have (B) has"
+        >
+          Try a grammar question ↗
+        </button>
+      </div>
+
+      <!-- Ask AI -->
+      <button type="button" id="askButton" class="ask-button">
+        Explain my answer <span>→</span>
+      </button>
+
+      <p class="hint">
+        Step-by-step explanations · Practice at your own pace
+      </p>
+
+      <!-- AI response -->
+      <section id="result" class="result" aria-live="polite" hidden>
+        <h2>Your explanation</h2>
+        <div id="answer"></div>
+      </section>
+
+    </section>
+
+    <footer>
+      Built for curious minds. Keep learning, one question at a time.
+    </footer>
+  </main>
+
+  <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

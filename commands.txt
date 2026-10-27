@@ -1,0 +1,3 @@
+(Set-ExecutionPolicy -Scope Process -ExecutionPolicy RemoteSigned) ; (& "c:\Users\Farxodjon Jakbarov\Desktop\Dekstop\SAT_Tutor\.venv\Scripts\Activate.ps1")                                               
+
+python app.py 
